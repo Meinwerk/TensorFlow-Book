@@ -32,20 +32,20 @@ class SOM:
         alpha = rate * 0.5
         sigma = rate * tf.to_float(tf.maximum(self.width, self.height)) / 2.
         expanded_bmu_loc = tf.expand_dims(tf.to_float(bmu_loc), 0)
-        sqr_dists_from_bmu = tf.reduce_sum(tf.square(tf.sub(expanded_bmu_loc, self.node_locs)), 1)
+        sqr_dists_from_bmu = tf.reduce_sum(tf.square(tf.subtract(expanded_bmu_loc, self.node_locs)), 1)
         neigh_factor = tf.exp(-tf.div(sqr_dists_from_bmu, 2 * tf.square(sigma)))
-        rate = tf.mul(alpha, neigh_factor)
-        rate_factor = tf.pack([tf.tile(tf.slice(rate, [i], [1]), [self.dim]) for i in range(num_nodes)])
-        nodes_diff = tf.mul(rate_factor, tf.sub(tf.pack([x for i in range(num_nodes)]), self.nodes))
+        rate = tf.multiply(alpha, neigh_factor)
+        rate_factor = tf.stack([tf.tile(tf.slice(rate, [i], [1]), [self.dim]) for i in range(num_nodes)])
+        nodes_diff = tf.multiply(rate_factor, tf.subtract(tf.stack([x for i in range(num_nodes)]), self.nodes))
         update_nodes = tf.add(self.nodes, nodes_diff)
         return tf.assign(self.nodes, update_nodes)
 
     def get_bmu_loc(self, x):
         expanded_x = tf.expand_dims(x, 0)
-        sqr_diff = tf.square(tf.sub(expanded_x, self.nodes))
+        sqr_diff = tf.square(tf.subtract(expanded_x, self.nodes))
         dists = tf.reduce_sum(sqr_diff, 1)
         bmu_idx = tf.argmin(dists, 0)
-        bmu_loc = tf.pack([tf.mod(bmu_idx, self.width), tf.div(bmu_idx, self.width)])
+        bmu_loc = tf.stack([tf.mod(bmu_idx, self.width), tf.div(bmu_idx, self.width)])
         return bmu_loc
 
     def get_locs(self):
